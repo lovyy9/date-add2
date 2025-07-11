@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tambah Tanggal ke Gambar</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Inter", sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    .content {
+      padding: 40px;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    .control-group {
+      background: #f8fafc;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      transition: all 0.3s ease;
+    }
+
+    .control-group:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .control-group label {
+      display: block;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .file-input-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .file-input-label:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    input[type="date"],
+    input[type="number"],
+    input[type="color"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    input[type="date"]:focus,
+    input[type="number"]:focus,
+    input[type="color"]:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    input[type="color"] {
+      height: 50px;
+      cursor: pointer;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .btn {
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+    }
+
+    .canvas-container {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    canvas {
+      border: 3px dashed #d1d5db;
+      border-radius: 8px;
+      max-width: 100%;
+      transition: all 0.3s ease;
+    }
+
+    canvas:hover {
+      border-color: #4f46e5;
+    }
+
+    .empty-state {
+      padding: 60px 20px;
+      color: #6b7280;
+      font-size: 1.1rem;
+    }
+
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+      
+      .content {
+        padding: 20px;
+      }
+      
+      .controls-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container fade-in">
+    <div class="header">
+      <h1>Date Add</h1>
+      <p>Tambahkan tanggal ke gambar Anda</p>
+    </div>
+    
+    <div class="content">
+      <div class="controls-grid">
+        <div class="control-group">
+          <label for="imageInput">📁 Unggah Gambar</label>
+          <div class="file-input-wrapper">
+            <input type="file" id="imageInput" accept="image/*" />
+            <label for="imageInput" class="file-input-label">
+              Pilih Gambar
+            </label>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label for="dateInput">📅 Pilih Tanggal</label>
+          <input type="date" id="dateInput" />
+        </div>
+
+        <div class="control-group">
+          <label for="fontSize">📏 Ukuran Teks</label>
+          <input type="number" id="fontSize" min="10" max="100" value="30" />
+        </div>
+
+        <div class="control-group">
+          <label for="textColor">🎨 Warna Teks</label>
+          <input type="color" id="textColor" value="#000000" />
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="addDateText()">
+          ✨ Tambah Tanggal
+        </button>
+        <button class="btn btn-secondary" onclick="downloadImage()">
+          💾 Unduh Gambar
+        </button>
+      </div>
+
+      <div class="canvas-container">
+        <canvas id="canvas"></canvas>
+        <div id="emptyState" class="empty-state">
+          <svg fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+          </svg>
+          <div>Unggah gambar untuk memulai</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = new fabric.Canvas('canvas');
+    const dateInput = document.getElementById('dateInput');
+    const fontSizeInput = document.getElementById('fontSize');
+    const textColorInput = document.getElementById('textColor');
+    const emptyState = document.getElementById('emptyState');
+    let uploadedImg;
+
+    // Set tanggal default = hari ini
+    dateInput.valueAsDate = new Date();
+
+    // Hide canvas initially
+    canvas.getElement().style.display = 'none';
+
+    document.getElementById('imageInput').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (f) {
+        fabric.Image.fromURL(f.target.result, function (img) {
+          uploadedImg = img;
+          canvas.clear();
+          img.set({ selectable: false });
+          
+          // Scale image to fit container while maintaining aspect ratio
+          const maxWidth = 800;
+          const maxHeight = 600;
+          const scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
+          
+          canvas.setWidth(img.width * scale);
+          canvas.setHeight(img.height * scale);
+          
+          img.scale(scale);
+          canvas.add(img);
+          
+          // Show canvas and hide empty state
+          canvas.getElement().style.display = 'block';
+          emptyState.style.display = 'none';
+          
+          // Update file input label
+          document.querySelector('.file-input-label').textContent = file.name;
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function addDateText() {
+      if (!uploadedImg) {
+        alert('Silakan unggah gambar terlebih dahulu!');
+        return;
+      }
+
+      // Remove existing date text
+      const objects = canvas.getObjects();
+      objects.forEach(obj => {
+        if (obj.type === 'text') {
+          canvas.remove(obj);
+        }
+      });
+
+      const date = new Date(dateInput.value);
+      const formatted = `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
+      
+      const text = new fabric.Text(formatted, {
+        left: canvas.getWidth() / 2,
+        top: 50,
+        fontSize: parseInt(fontSizeInput.value),
+        fill: textColorInput.value,
+        originX: 'center',
+        originY: 'center',
+        fontFamily: 'Inter, sans-serif',
+        fontWeight: 'bold',
+        shadow: 'rgba(0,0,0,0.3) 2px 2px 4px'
+      });
+
+      canvas.add(text);
+      canvas.setActiveObject(text);
+      canvas.renderAll();
+    }
+
+    function downloadImage() {
+      if (!uploadedImg) {
+        alert('Silakan unggah gambar dan tambahkan tanggal terlebih dahulu!');
+        return;
+      }
+
+      const dataURL = canvas.toDataURL({ 
+        format: 'png',
+        quality: 1.0,
+        multiplier: 2
+      });
+      
+      const a = document.createElement('a');
+      a.href = dataURL;
+      a.download = `gambar_dengan_tanggal_${new Date().getTime()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // Add some interactive feedback
+    document.querySelectorAll('.control-group input').forEach(input => {
+      input.addEventListener('focus', function() {
+        this.parentElement.style.transform = 'scale(1.02)';
+      });
+      
+      input.addEventListener('blur', function() {
+        this.parentElement.style.transform = 'scale(1)';
+      });
+    });
+  </script>
+</body>
+</html>
